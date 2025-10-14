@@ -5,6 +5,7 @@ STORAGE_IMPLEMENTATIONS = {
             "RedisKVStorage",
             "PGKVStorage",
             "MongoKVStorage",
+            "YashanKvStorage",
         ],
         "required_methods": ["get_by_id", "upsert"],
     },
@@ -15,6 +16,7 @@ STORAGE_IMPLEMENTATIONS = {
             "PGGraphStorage",
             "MongoGraphStorage",
             "MemgraphStorage",
+            "YashanGraphStorage",
         ],
         "required_methods": ["upsert_node", "upsert_edge"],
     },
@@ -27,6 +29,7 @@ STORAGE_IMPLEMENTATIONS = {
             "QdrantVectorDBStorage",
             "MongoVectorDBStorage",
             # "ChromaVectorDBStorage",
+            "YashanVectorDBStorage",
         ],
         "required_methods": ["query", "upsert"],
     },
@@ -36,18 +39,22 @@ STORAGE_IMPLEMENTATIONS = {
             "RedisDocStatusStorage",
             "PGDocStatusStorage",
             "MongoDocStatusStorage",
+            "YashanDocStatusStorage",
         ],
         "required_methods": ["get_docs_by_status"],
     },
 }
 
 # Storage implementation environment variable without default value
+YASHAN_ENV_REQUIREMENTS = ["YASHANDB_USER", "YASHANDB_PASSWORD"]
+
 STORAGE_ENV_REQUIREMENTS: dict[str, list[str]] = {
     # KV Storage Implementations
     "JsonKVStorage": [],
     "MongoKVStorage": [],
     "RedisKVStorage": ["REDIS_URI"],
     "PGKVStorage": ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DATABASE"],
+    "YashanKvStorage": YASHAN_ENV_REQUIREMENTS,
     # Graph Storage Implementations
     "NetworkXStorage": [],
     "Neo4JStorage": ["NEO4J_URI", "NEO4J_USERNAME", "NEO4J_PASSWORD"],
@@ -63,19 +70,23 @@ STORAGE_ENV_REQUIREMENTS: dict[str, list[str]] = {
         "POSTGRES_PASSWORD",
         "POSTGRES_DATABASE",
     ],
+    "YashanGraphStorage": YASHAN_ENV_REQUIREMENTS,
     # Vector Storage Implementations
     "NanoVectorDBStorage": [],
     "MilvusVectorDBStorage": [],
     "ChromaVectorDBStorage": [],
     "PGVectorStorage": ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DATABASE"],
     "FaissVectorDBStorage": [],
-    "QdrantVectorDBStorage": ["QDRANT_URL"],  # QDRANT_API_KEY has default value None
+    # QDRANT_API_KEY has default value None
+    "QdrantVectorDBStorage": ["QDRANT_URL"],
     "MongoVectorDBStorage": [],
+    "YashanVectorDBStorage": YASHAN_ENV_REQUIREMENTS,
     # Document Status Storage Implementations
     "JsonDocStatusStorage": [],
     "RedisDocStatusStorage": ["REDIS_URI"],
     "PGDocStatusStorage": ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DATABASE"],
     "MongoDocStatusStorage": [],
+    "YashanDocStatusStorage": YASHAN_ENV_REQUIREMENTS,
 }
 
 # Storage implementation module mapping
@@ -101,6 +112,10 @@ STORAGES = {
     "FaissVectorDBStorage": ".kg.faiss_impl",
     "QdrantVectorDBStorage": ".kg.qdrant_impl",
     "MemgraphStorage": ".kg.memgraph_impl",
+    "YashanKvStorage": ".kg.yashandb_impl",
+    "YashanGraphStorage": ".kg.yashandb_impl",
+    "YashanVectorDBStorage": ".kg.yashandb_impl",
+    "YashanDocStatusStorage": ".kg.yashandb_impl",
 }
 
 
