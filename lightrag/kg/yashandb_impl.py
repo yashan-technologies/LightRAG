@@ -1222,14 +1222,14 @@ class YashanGraphStorage(BaseGraphStorage):
                 END create_property_graph;
                 """,
                 f"""CREATE TABLE IF NOT EXISTS {self.vertices_table_name} (
-                    entity_id VARCHAR(512) PRIMARY KEY,
+                    entity_id VARCHAR(512 CHAR) PRIMARY KEY,
                     properties JSON
                 )""",
                 f"CREATE SEQUENCE {self.edges_table_name}_id_seq START WITH 1 INCREMENT BY 1 NOCACHE",
                 f"""CREATE TABLE IF NOT EXISTS {self.edges_table_name} (
                     id NUMBER DEFAULT {self.edges_table_name}_id_seq.NEXTVAL PRIMARY KEY,
-                    start_entity_id VARCHAR(512),
-                    end_entity_id VARCHAR(512),
+                    start_entity_id VARCHAR(512 CHAR),
+                    end_entity_id VARCHAR(512 CHAR),
                     properties JSON,
                     CONSTRAINT c_{self.edges_table_name}_start_id FOREIGN KEY (start_entity_id) REFERENCES {self.vertices_table_name}(entity_id) ON DELETE CASCADE,
                     CONSTRAINT c_{self.edges_table_name}_end_id FOREIGN KEY (end_entity_id) REFERENCES {self.vertices_table_name}(entity_id) ON DELETE CASCADE 
@@ -1289,8 +1289,8 @@ class YashanGraphStorage(BaseGraphStorage):
                     p_properties IN JSON
                 ) AS
                     v_edge_exists NUMBER;
-                    v_start_entity_id VARCHAR(200);
-                    v_end_entity_id VARCHAR(200);
+                    v_start_entity_id VARCHAR(512 CHAR);
+                    v_end_entity_id VARCHAR(512 CHAR);
                     v_dynamic_sql VARCHAR2(4000); -- 用于构建动态SQL
                 BEGIN
                     -- 1. 动态检查节点是否存在
