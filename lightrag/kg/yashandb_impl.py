@@ -56,8 +56,7 @@ class YashanDBConfig:
     port: int = 1688
 
     # NOTE: This is for sharing the same table with multiple lightrag instances
-    workspace: str = "default"
-
+    workspace: Optional[str] = None
     # vdb related configs
     vector_idx_type: str = "hnsw"
     hnsw_m: int = 16
@@ -261,7 +260,7 @@ class ClientManager:
             port=env_int("YASHANDB_PORT", 1688),
             user=env("YASHANDB_USER", "yashan"),
             password=env("YASHANDB_PASSWORD", "yashan"),
-            workspace=env("YASHANDB_WORKSPACE", "default"),
+            workspace=env("YASHANDB_WORKSPACE", None),
             # vdb
             vector_idx_type=env("YASHANDB_VECTOR_INDEX_TYPE", "hnsw"),
             hnsw_m=env_int("YASHANDB_HNSW_M", 16),
@@ -598,11 +597,11 @@ class YashanKvStorage(BaseKVStorage):
             if self.db is None:
                 self.db = await ClientManager.get_client()
 
-            # Implement workspace priority: PostgreSQLDB.workspace > self.workspace > "default"
+            # Implement workspace priority: YashanDB.workspace > self.workspace > "default"
             if self.db.workspace:
-                # Use PostgreSQLDB's workspace (highest priority)
+                # Use YashanDB's workspace (highest priority)
                 self.workspace = self.db.workspace
-            elif self.workspace:
+            elif hasattr(self, "workspace") and self.workspace:
                 # Use storage class's workspace (medium priority)
                 pass
             else:
@@ -913,7 +912,7 @@ class YashanKvStorage(BaseKVStorage):
             return new_keys
         except Exception as e:
             logger.error(
-                f"[{self.workspace}] PostgreSQL database,\nsql:{sql},\nparams:{params},\nerror:{e}"
+                f"[{self.workspace}] YashanDB database,\nsql:{sql},\nparams:{params},\nerror:{e}"
             )
             raise
 
@@ -1083,7 +1082,7 @@ class YashanGraphStorage(BaseGraphStorage):
         namespace = self.namespace
 
         if workspace and workspace.strip() and workspace.strip().lower() != "default":
-            # Ensure names comply with PostgreSQL identifier specifications
+            # Ensure names comply with YashanDB identifier specifications
             safe_workspace = re.sub(r"[^a-zA-Z0-9_]", "_", workspace.strip())
             safe_namespace = re.sub(r"[^a-zA-Z0-9_]", "_", namespace)
             return f"{safe_workspace}_{safe_namespace}"
@@ -1118,9 +1117,9 @@ class YashanGraphStorage(BaseGraphStorage):
             if self.db.workspace:
                 # Use YashanDB's workspace (highest priority)
                 self.workspace = self.db.workspace
-            if hasattr(self, "workspace") and self.workspace:
+            elif hasattr(self, "workspace") and self.workspace:
                 # Use storage class's workspace (medium priority)
-                self.workspace = self.workspace
+                pass
             else:
                 # Use "default" for compatibility (lowest priority)
                 self.workspace = "default"
@@ -2518,8 +2517,6 @@ class YashanGraphStorage(BaseGraphStorage):
                 result = await self.db.query(query, multirows=True, params=params)
                 nodes_dict = {}
                 edges_dict = {}
-                # ToDo: add node and edge to kg
-                # postgres_impl.py:4140~4183
                 for row in result:
                     node_id = str(row[str("start_node_entity_id").lower()])
                     if node_id not in nodes_dict and (
@@ -2913,11 +2910,11 @@ class YashanVectorDBStorage(BaseVectorStorage):
             if self.db is None:
                 self.db = await ClientManager.get_client()
 
-            # Implement workspace priority: PostgreSQLDB.workspace > self.workspace > "default"
+            # Implement workspace priority: YashanDB.workspace > self.workspace > "default"
             if self.db.workspace:
-                # Use PostgreSQLDB's workspace (highest priority)
+                # Use YashanDB's workspace (highest priority)
                 self.workspace = self.db.workspace
-            elif self.workspace:
+            elif hasattr(self, "workspace") and self.workspace:
                 # Use storage class's workspace (medium priority)
                 pass
             else:
@@ -3319,9 +3316,9 @@ class YashanDocStatusStorage(DocStatusStorage):
             if self.db is None:
                 self.db = await ClientManager.get_client()
 
-            # Implement workspace priority: PostgreSQLDB.workspace > self.workspace > "default"
+            # Implement workspace priority: YashanDB.workspace > self.workspace > "default"
             if self.db.workspace:
-                # Use PostgreSQLDB's workspace (highest priority)
+                # Use YashanDB's workspace (highest priority)
                 self.workspace = self.db.workspace
             elif hasattr(self, "workspace") and self.workspace:
                 # Use storage class's workspace (medium priority)
